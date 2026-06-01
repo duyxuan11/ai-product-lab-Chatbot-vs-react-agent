@@ -1,0 +1,32 @@
+[
+    {
+        "id": "user_1",
+        "name": "Nguyễn Văn A",
+        "age": 24,
+        "gender": "Nam",
+        "weight_kg": 68.0,
+        "height_cm": 175.0,
+        "activity_level": "moderate",
+        "goal": "build_muscle"
+    },
+    {
+        "id": "user_2",
+        "name": "Trần Thị B",
+        "age": 28,
+        "gender": "Nữ",
+        "weight_kg": 60.0,
+        "height_cm": 158.0,
+        "activity_level": "sedentary",
+        "goal": "lose_weight"
+    },
+    {
+        "id": "user_3",
+        "name": "Lê Hoàng C",
+        "age": 22,
+        "gender": "Nam",
+        "weight_kg": 52.0,
+        "height_cm": 170.0,
+        "activity_level": "light",
+        "goal": "gain_weight"
+    }
+]

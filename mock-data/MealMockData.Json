@@ -1,0 +1,482 @@
+[
+    {
+        "id": 1,
+        "name": "Phở bò",
+        "calories_kcal": 450,
+        "protein_g": 25,
+        "carbohydrates_g": 60,
+        "fat_g": 12
+    },
+    {
+        "id": 2,
+        "name": "Bánh mì thịt",
+        "calories_kcal": 400,
+        "protein_g": 15,
+        "carbohydrates_g": 45,
+        "fat_g": 18
+    },
+    {
+        "id": 3,
+        "name": "Bún chả",
+        "calories_kcal": 550,
+        "protein_g": 22,
+        "carbohydrates_g": 65,
+        "fat_g": 20
+    },
+    {
+        "id": 4,
+        "name": "Cơm tấm sườn nướng",
+        "calories_kcal": 600,
+        "protein_g": 30,
+        "carbohydrates_g": 70,
+        "fat_g": 22
+    },
+    {
+        "id": 5,
+        "name": "Gỏi cuốn (2 cuốn)",
+        "calories_kcal": 150,
+        "protein_g": 8,
+        "carbohydrates_g": 25,
+        "fat_g": 3
+    },
+    {
+        "id": 6,
+        "name": "Bún bò Huế",
+        "calories_kcal": 500,
+        "protein_g": 28,
+        "carbohydrates_g": 65,
+        "fat_g": 15
+    },
+    {
+        "id": 7,
+        "name": "Mì Quảng",
+        "calories_kcal": 480,
+        "protein_g": 20,
+        "carbohydrates_g": 60,
+        "fat_g": 18
+    },
+    {
+        "id": 8,
+        "name": "Bánh xèo",
+        "calories_kcal": 350,
+        "protein_g": 12,
+        "carbohydrates_g": 30,
+        "fat_g": 20
+    },
+    {
+        "id": 9,
+        "name": "Chả giò (3 cuốn)",
+        "calories_kcal": 240,
+        "protein_g": 9,
+        "carbohydrates_g": 15,
+        "fat_g": 15
+    },
+    {
+        "id": 10,
+        "name": "Phở gà",
+        "calories_kcal": 400,
+        "protein_g": 22,
+        "carbohydrates_g": 58,
+        "fat_g": 9
+    },
+    {
+        "id": 11,
+        "name": "Hủ tiếu Nam Vang",
+        "calories_kcal": 450,
+        "protein_g": 20,
+        "carbohydrates_g": 60,
+        "fat_g": 14
+    },
+    {
+        "id": 12,
+        "name": "Bún riêu cua",
+        "calories_kcal": 420,
+        "protein_g": 18,
+        "carbohydrates_g": 55,
+        "fat_g": 14
+    },
+    {
+        "id": 13,
+        "name": "Canh chua cá lóc",
+        "calories_kcal": 150,
+        "protein_g": 12,
+        "carbohydrates_g": 10,
+        "fat_g": 5
+    },
+    {
+        "id": 14,
+        "name": "Cá kho tộ",
+        "calories_kcal": 300,
+        "protein_g": 20,
+        "carbohydrates_g": 15,
+        "fat_g": 18
+    },
+    {
+        "id": 15,
+        "name": "Xôi gấc",
+        "calories_kcal": 400,
+        "protein_g": 8,
+        "carbohydrates_g": 75,
+        "fat_g": 6
+    },
+    {
+        "id": 16,
+        "name": "Bánh cuốn",
+        "calories_kcal": 300,
+        "protein_g": 10,
+        "carbohydrates_g": 45,
+        "fat_g": 8
+    },
+    {
+        "id": 17,
+        "name": "Gà luộc",
+        "calories_kcal": 250,
+        "protein_g": 25,
+        "carbohydrates_g": 0,
+        "fat_g": 15
+    },
+    {
+        "id": 18,
+        "name": "Thịt kho tàu",
+        "calories_kcal": 450,
+        "protein_g": 20,
+        "carbohydrates_g": 10,
+        "fat_g": 35
+    },
+    {
+        "id": 19,
+        "name": "Rau muống xào tỏi",
+        "calories_kcal": 120,
+        "protein_g": 3,
+        "carbohydrates_g": 8,
+        "fat_g": 9
+    },
+    {
+        "id": 20,
+        "name": "Chè chuối",
+        "calories_kcal": 250,
+        "protein_g": 2,
+        "carbohydrates_g": 45,
+        "fat_g": 8
+    },
+    {
+        "id": 21,
+        "name": "Bún mọc",
+        "calories_kcal": 400,
+        "protein_g": 18,
+        "carbohydrates_g": 55,
+        "fat_g": 12
+    },
+    {
+        "id": 22,
+        "name": "Cháo lòng",
+        "calories_kcal": 350,
+        "protein_g": 20,
+        "carbohydrates_g": 45,
+        "fat_g": 10
+    },
+    {
+        "id": 23,
+        "name": "Hủ tiếu gõ",
+        "calories_kcal": 380,
+        "protein_g": 15,
+        "carbohydrates_g": 58,
+        "fat_g": 10
+    },
+    {
+        "id": 24,
+        "name": "Bánh mì chảo",
+        "calories_kcal": 550,
+        "protein_g": 25,
+        "carbohydrates_g": 50,
+        "fat_g": 28
+    },
+    {
+        "id": 25,
+        "name": "Cơm gà Hội An",
+        "calories_kcal": 580,
+        "protein_g": 28,
+        "carbohydrates_g": 75,
+        "fat_g": 18
+    },
+    {
+        "id": 26,
+        "name": "Bún đậu mắm tôm",
+        "calories_kcal": 650,
+        "protein_g": 25,
+        "carbohydrates_g": 70,
+        "fat_g": 30
+    },
+    {
+        "id": 27,
+        "name": "Bánh canh cua",
+        "calories_kcal": 400,
+        "protein_g": 18,
+        "carbohydrates_g": 55,
+        "fat_g": 12
+    },
+    {
+        "id": 28,
+        "name": "Nem lụi (4 cây)",
+        "calories_kcal": 320,
+        "protein_g": 18,
+        "carbohydrates_g": 15,
+        "fat_g": 22
+    },
+    {
+        "id": 29,
+        "name": "Bò kho",
+        "calories_kcal": 450,
+        "protein_g": 28,
+        "carbohydrates_g": 20,
+        "fat_g": 25
+    },
+    {
+        "id": 30,
+        "name": "Gỏi ngó sen tôm thịt",
+        "calories_kcal": 200,
+        "protein_g": 15,
+        "carbohydrates_g": 25,
+        "fat_g": 5
+    },
+    {
+        "id": 31,
+        "name": "Lẩu hải sản",
+        "calories_kcal": 450,
+        "protein_g": 30,
+        "carbohydrates_g": 40,
+        "fat_g": 15
+    },
+    {
+        "id": 32,
+        "name": "Bún quậy Phú Quốc",
+        "calories_kcal": 420,
+        "protein_g": 22,
+        "carbohydrates_g": 60,
+        "fat_g": 10
+    },
+    {
+        "id": 33,
+        "name": "Bánh khọt (5 cái)",
+        "calories_kcal": 380,
+        "protein_g": 12,
+        "carbohydrates_g": 45,
+        "fat_g": 16
+    },
+    {
+        "id": 34,
+        "name": "Canh khoai mỡ thịt bằm",
+        "calories_kcal": 180,
+        "protein_g": 10,
+        "carbohydrates_g": 25,
+        "fat_g": 6
+    },
+    {
+        "id": 35,
+        "name": "Sườn xào chua ngọt",
+        "calories_kcal": 350,
+        "protein_g": 18,
+        "carbohydrates_g": 15,
+        "fat_g": 24
+    },
+    {
+        "id": 36,
+        "name": "Bắp xào tép hành",
+        "calories_kcal": 280,
+        "protein_g": 5,
+        "carbohydrates_g": 40,
+        "fat_g": 12
+    },
+    {
+        "id": 37,
+        "name": "Chè trôi nước (1 bát)",
+        "calories_kcal": 300,
+        "protein_g": 4,
+        "carbohydrates_g": 60,
+        "fat_g": 6
+    },
+    {
+        "id": 38,
+        "name": "Chuối nếp nướng",
+        "calories_kcal": 280,
+        "protein_g": 3,
+        "carbohydrates_g": 55,
+        "fat_g": 5
+    },
+    {
+        "id": 39,
+        "name": "Bánh da lợn",
+        "calories_kcal": 220,
+        "protein_g": 3,
+        "carbohydrates_g": 45,
+        "fat_g": 3
+    },
+    {
+        "id": 40,
+        "name": "Trứng vịt lộn (1 quả)",
+        "calories_kcal": 180,
+        "protein_g": 13,
+        "carbohydrates_g": 1,
+        "fat_g": 12
+    },
+    {
+        "id": 41,
+        "name": "Cao lầu",
+        "calories_kcal": 450,
+        "protein_g": 18,
+        "carbohydrates_g": 65,
+        "fat_g": 12
+    },
+    {
+        "id": 42,
+        "name": "Bún cá Nha Trang",
+        "calories_kcal": 380,
+        "protein_g": 20,
+        "carbohydrates_g": 55,
+        "fat_g": 8
+    },
+    {
+        "id": 43,
+        "name": "Bún mắm",
+        "calories_kcal": 480,
+        "protein_g": 22,
+        "carbohydrates_g": 65,
+        "fat_g": 14
+    },
+    {
+        "id": 44,
+        "name": "Bánh tét (1 khoanh)",
+        "calories_kcal": 350,
+        "protein_g": 8,
+        "carbohydrates_g": 50,
+        "fat_g": 12
+    },
+    {
+        "id": 45,
+        "name": "Gỏi gà bắp cải",
+        "calories_kcal": 180,
+        "protein_g": 15,
+        "carbohydrates_g": 12,
+        "fat_g": 7
+    },
+    {
+        "id": 46,
+        "name": "Cháo gà",
+        "calories_kcal": 300,
+        "protein_g": 14,
+        "carbohydrates_g": 45,
+        "fat_g": 6
+    },
+    {
+        "id": 47,
+        "name": "Cơm chiên Dương Châu",
+        "calories_kcal": 650,
+        "protein_g": 18,
+        "carbohydrates_g": 85,
+        "fat_g": 22
+    },
+    {
+        "id": 48,
+        "name": "Bánh canh giò heo",
+        "calories_kcal": 480,
+        "protein_g": 22,
+        "carbohydrates_g": 55,
+        "fat_g": 18
+    },
+    {
+        "id": 49,
+        "name": "Chả cá Lã Vọng",
+        "calories_kcal": 400,
+        "protein_g": 25,
+        "carbohydrates_g": 10,
+        "fat_g": 28
+    },
+    {
+        "id": 50,
+        "name": "Nộm bò khô",
+        "calories_kcal": 230,
+        "protein_g": 12,
+        "carbohydrates_g": 25,
+        "fat_g": 9
+    },
+    {
+        "id": 51,
+        "name": "Bánh mì xíu mại",
+        "calories_kcal": 420,
+        "protein_g": 16,
+        "carbohydrates_g": 48,
+        "fat_g": 18
+    },
+    {
+        "id": 52,
+        "name": "Súp cua",
+        "calories_kcal": 150,
+        "protein_g": 8,
+        "carbohydrates_g": 15,
+        "fat_g": 5
+    },
+    {
+        "id": 53,
+        "name": "Khổ qua nhồi thịt (1 quả)",
+        "calories_kcal": 160,
+        "protein_g": 12,
+        "carbohydrates_g": 8,
+        "fat_g": 9
+    },
+    {
+        "id": 54,
+        "name": "Bún thịt nướng",
+        "calories_kcal": 520,
+        "protein_g": 20,
+        "carbohydrates_g": 68,
+        "fat_g": 16
+    },
+    {
+        "id": 55,
+        "name": "Nem nướng Nha Trang (1 phần)",
+        "calories_kcal": 500,
+        "protein_g": 22,
+        "carbohydrates_g": 50,
+        "fat_g": 22
+    },
+    {
+        "id": 56,
+        "name": "Chè đậu xanh",
+        "calories_kcal": 260,
+        "protein_g": 6,
+        "carbohydrates_g": 50,
+        "fat_g": 4
+    },
+    {
+        "id": 57,
+        "name": "Bánh tiêu (1 cái)",
+        "calories_kcal": 180,
+        "protein_g": 3,
+        "carbohydrates_g": 25,
+        "fat_g": 7
+    },
+    {
+        "id": 58,
+        "name": "Bánh giò",
+        "calories_kcal": 350,
+        "protein_g": 10,
+        "carbohydrates_g": 40,
+        "fat_g": 16
+    },
+    {
+        "id": 59,
+        "name": "Ốc nấu chuối đậu",
+        "calories_kcal": 300,
+        "protein_g": 18,
+        "carbohydrates_g": 25,
+        "fat_g": 14
+    },
+    {
+        "id": 60,
+        "name": "Phở cuốn (3 cuốn)",
+        "calories_kcal": 280,
+        "protein_g": 14,
+        "carbohydrates_g": 35,
+        "fat_g": 8
+    }
+]
