@@ -14,7 +14,7 @@ Trong lab này, phần đóng góp kỹ thuật chính của tôi là xây dựn
   - `src/tools/tdee_calculator.py`
   - `src/tools/db.utils.py`
 
-### 1. `calculate_tdee` - Tool tính BMR, TDEE và macro mục tiêu
+### 1. `tdee_calculator` - Tool tính BMR, TDEE và macro mục tiêu
 
 Tool `calculate_tdee` nhận các thông tin cá nhân gồm cân nặng, chiều cao, tuổi, giới tính, mức độ vận động và mục tiêu. Sau đó tool tính:
 
