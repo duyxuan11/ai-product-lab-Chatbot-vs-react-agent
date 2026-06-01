@@ -230,22 +230,14 @@
             },
             "menu": {
                 "Breakfast": {
-                    "id": 26,
-                    "name": "Bún đậu mắm tôm",
-                    "calories_kcal": 650,
-                    "protein_g": 25,
-                    "carbohydrates_g": 70,
-                    "fat_g": 30
+                    "id": 3,
+                    "name": "Bún chả",
+                    "calories_kcal": 550,
+                    "protein_g": 22,
+                    "carbohydrates_g": 65,
+                    "fat_g": 20
                 },
                 "Lunch": {
-                    "id": 4,
-                    "name": "Cơm tấm sườn nướng",
-                    "calories_kcal": 600,
-                    "protein_g": 30,
-                    "carbohydrates_g": 70,
-                    "fat_g": 22
-                },
-                "Dinner": {
                     "id": 47,
                     "name": "Cơm chiên Dương Châu",
                     "calories_kcal": 650,
@@ -253,22 +245,30 @@
                     "carbohydrates_g": 85,
                     "fat_g": 22
                 },
+                "Dinner": {
+                    "id": 4,
+                    "name": "Cơm tấm sườn nướng",
+                    "calories_kcal": 600,
+                    "protein_g": 30,
+                    "carbohydrates_g": 70,
+                    "fat_g": 22
+                },
                 "Snack": {
-                    "id": 37,
-                    "name": "Chè trôi nước (1 bát)",
-                    "calories_kcal": 300,
-                    "protein_g": 4,
-                    "carbohydrates_g": 60,
-                    "fat_g": 6
+                    "id": 28,
+                    "name": "Nem lụi (4 cây)",
+                    "calories_kcal": 320,
+                    "protein_g": 18,
+                    "carbohydrates_g": 15,
+                    "fat_g": 22
                 }
             },
             "totals": {
-                "calories": 2200,
-                "protein_g": 77,
-                "carbohydrates_g": 285,
-                "fat_g": 80
+                "calories": 2120,
+                "protein_g": 88,
+                "carbohydrates_g": 235,
+                "fat_g": 86
             },
-            "message": "Gợi ý thực đơn thành công! Tổng năng lượng: 2200 kcal (Mục tiêu: 2431 kcal). Tỷ lệ dinh dưỡng nạp lệch không quá 15% mục tiêu: Protein lệch 36%, Carbs lệch 15%, Fat lệch 19%."
+            "message": "Gợi ý thực đơn thành công! Tổng năng lượng: 2120 kcal (Mục tiêu: 2431 kcal). Tỷ lệ dinh dưỡng nạp lệch không quá 15% mục tiêu: Protein lệch 27%, Carbs lệch 30%, Fat lệch 28%."
         }
     }
 ]
