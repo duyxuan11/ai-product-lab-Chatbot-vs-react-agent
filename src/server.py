@@ -201,11 +201,17 @@ def chat_with_agent(request: ChatRequest):
         
         # Save new messages to history
         if request.user_id:
-            history.append({"sender": "user", "text": request.message, "trace": None})
+            history.append({
+                "sender": "user",
+                "text": request.message,
+                "trace": None,
+                "eval": None
+            })
             history.append({
                 "sender": "assistant",
                 "text": result["final_answer"],
-                "trace": result["history"]
+                "trace": result["history"],
+                "eval": result.get("eval")
             })
             save_chat_history(request.user_id, history)
             

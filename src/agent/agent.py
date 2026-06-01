@@ -94,6 +94,8 @@ LƯU Ý QUAN TRỌNG:
         - final_answer: The agent's final text output.
         - history: The step-by-step trace of Thought, Action, and Observation.
         """
+        import time
+        start_time = time.time()
         self.history = []
         
         # Build context if available
@@ -118,16 +120,30 @@ LƯU Ý QUAN TRỌNG:
         current_prompt = full_input
         steps = 0
         final_answer = "Xin lỗi, tôi đã gặp lỗi khi xử lý yêu cầu của bạn hoặc vượt quá giới hạn suy nghĩ."
+        
+        # Performance metrics accumulation
+        total_prompt_tokens = 0
+        total_completion_tokens = 0
+        total_total_tokens = 0
+        model_used = self.llm.model_name
 
         while steps < self.max_steps:
             # 1. Generate LLM response
             llm_response = self.llm.generate(current_prompt, system_prompt=self.get_system_prompt())
             response_text = llm_response.get("content", "")
             
+            # Accumulate token usage metrics
+            usage = llm_response.get("usage", {})
+            total_prompt_tokens += usage.get("prompt_tokens", 0)
+            total_completion_tokens += usage.get("completion_tokens", 0)
+            total_total_tokens += usage.get("total_tokens", 0)
+            if "model_used" in llm_response:
+                model_used = llm_response["model_used"]
+            
             logger.log_event("LLM_CALL", {
                 "step": steps + 1,
                 "response": response_text,
-                "tokens": llm_response.get("usage", {}),
+                "tokens": usage,
                 "latency_ms": llm_response.get("latency_ms", 0)
             })
 
@@ -195,10 +211,25 @@ LƯU Ý QUAN TRỌNG:
             
             steps += 1
             
-        logger.log_event("AGENT_END", {"steps": steps + 1, "final_answer": final_answer})
+        # If loop ended, steps represents final count. If it broke, steps is also correct.
+        # But wait, steps starts at 0, inside the loop it is incremented by 1 at the end of each iteration.
+        # So if we break on step 1, steps is 0 at loop start, we increment it, or break before.
+        # Let's count actual ReAct trace steps: len(self.history)
+        actual_steps = len(self.history)
+        duration_ms = int((time.time() - start_time) * 1000)
+        
+        logger.log_event("AGENT_END", {"steps": actual_steps, "final_answer": final_answer})
         return {
             "final_answer": final_answer,
-            "history": self.history
+            "history": self.history,
+            "eval": {
+                "model": model_used,
+                "latency_ms": duration_ms,
+                "prompt_tokens": total_prompt_tokens,
+                "completion_tokens": total_completion_tokens,
+                "total_tokens": total_total_tokens,
+                "steps": actual_steps
+            }
         }
 
     def _parse_arguments(self, args_str: str) -> Dict[str, Any]:

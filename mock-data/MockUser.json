@@ -38,6 +38,26 @@
                 "carbohydrates_g": 65,
                 "fat_g": 15,
                 "timestamp": "2026-06-01T15:13:13.478737"
+            },
+            {
+                "meal_type": "Breakfast",
+                "dish_name": "Phở bò",
+                "portion_size": 1.0,
+                "calories_kcal": 450,
+                "protein_g": 25,
+                "carbohydrates_g": 60,
+                "fat_g": 12,
+                "timestamp": "2026-06-01T17:16:27.532549"
+            },
+            {
+                "meal_type": "Breakfast",
+                "dish_name": "Gà luộc",
+                "portion_size": 1.0,
+                "calories_kcal": 250,
+                "protein_g": 25,
+                "carbohydrates_g": 0,
+                "fat_g": 15,
+                "timestamp": "2026-06-01T17:54:52.252180"
             }
         ],
         "recommended_menu": {
@@ -52,12 +72,12 @@
             },
             "menu": {
                 "Breakfast": {
-                    "id": 26,
-                    "name": "Bún đậu mắm tôm",
-                    "calories_kcal": 650,
-                    "protein_g": 25,
-                    "carbohydrates_g": 70,
-                    "fat_g": 30
+                    "id": 11,
+                    "name": "Hủ tiếu Nam Vang",
+                    "calories_kcal": 450,
+                    "protein_g": 20,
+                    "carbohydrates_g": 60,
+                    "fat_g": 14
                 },
                 "Lunch": {
                     "id": 47,
@@ -68,29 +88,29 @@
                     "fat_g": 22
                 },
                 "Dinner": {
-                    "id": 25,
-                    "name": "Cơm gà Hội An",
-                    "calories_kcal": 580,
+                    "id": 29,
+                    "name": "Bò kho",
+                    "calories_kcal": 450,
                     "protein_g": 28,
-                    "carbohydrates_g": 75,
-                    "fat_g": 18
+                    "carbohydrates_g": 20,
+                    "fat_g": 25
                 },
                 "Snack": {
-                    "id": 9,
-                    "name": "Chả giò (3 cuốn)",
-                    "calories_kcal": 240,
-                    "protein_g": 9,
-                    "carbohydrates_g": 15,
-                    "fat_g": 15
+                    "id": 58,
+                    "name": "Bánh giò",
+                    "calories_kcal": 350,
+                    "protein_g": 10,
+                    "carbohydrates_g": 40,
+                    "fat_g": 16
                 }
             },
             "totals": {
-                "calories": 2120,
-                "protein_g": 80,
-                "carbohydrates_g": 245,
-                "fat_g": 85
+                "calories": 1900,
+                "protein_g": 76,
+                "carbohydrates_g": 205,
+                "fat_g": 77
             },
-            "message": "Gợi ý thực đơn thành công! Tổng năng lượng: 2120 kcal (Mục tiêu: 2771 kcal). Tỷ lệ dinh dưỡng nạp lệch không quá 15% mục tiêu: Protein lệch 67%, Carbs lệch 12%, Fat lệch 12%."
+            "message": "Gợi ý thực đơn thành công! Tổng năng lượng: 1900 kcal (Mục tiêu: 2771 kcal). Tỷ lệ dinh dưỡng nạp lệch không quá 15% mục tiêu: Protein lệch 69%, Carbs lệch 26%, Fat lệch 1%."
         }
     },
     {
