@@ -115,6 +115,7 @@ Final Answer: [Detailed response to the user]
     def run(self, user_input: str) -> str:
         logger.log_event("AGENT_START", {"input": user_input, "model": self.llm.model_name})
         
+        self.steps_history = []
         current_prompt = f"User: {user_input}"
         steps = 0
         
@@ -143,10 +144,24 @@ Final Answer: [Detailed response to the user]
             # Append LLM output to conversation context
             current_prompt += f"\n{content}"
             
+            # Extract thought
+            thought = content
+            if "Action:" in content:
+                thought = content.split("Action:")[0].strip()
+            elif "Final Answer:" in content:
+                thought = content.split("Final Answer:")[0].strip()
+            
             # Check for Final Answer
             final_answer_match = re.search(r"Final\s+Answer:\s*(.*)", content, re.IGNORECASE | re.DOTALL)
             if final_answer_match:
                 final_answer = final_answer_match.group(1).strip()
+                self.steps_history.append({
+                    "step": steps,
+                    "thought": thought,
+                    "action": None,
+                    "observation": None,
+                    "final_answer": final_answer
+                })
                 logger.log_event("AGENT_END", {"steps": steps, "status": "SUCCESS"})
                 return final_answer
                 
@@ -162,11 +177,26 @@ Final Answer: [Detailed response to the user]
                 
                 # Append Observation to context
                 current_prompt += f"\nObservation: {observation}"
+                
+                self.steps_history.append({
+                    "step": steps,
+                    "thought": thought,
+                    "action": f"{tool_name}({args_str})",
+                    "observation": observation,
+                    "final_answer": None
+                })
             else:
                 # If LLM didn't output Action or Final Answer, treat the whole content as Final Answer
                 # to prevent infinite loops, but log a warning.
                 logger.log_event("AGENT_PARSING_WARNING", {"content": content})
                 logger.log_event("AGENT_END", {"steps": steps, "status": "FALLBACK_SUCCESS"})
+                self.steps_history.append({
+                    "step": steps,
+                    "thought": thought,
+                    "action": None,
+                    "observation": None,
+                    "final_answer": content
+                })
                 return content
                 
         logger.log_event("AGENT_END", {"steps": steps, "status": "TIMEOUT"})

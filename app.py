@@ -162,14 +162,77 @@ with col3:
         preset_query = "Hôm nay tôi đã ăn: 1 tô Phở bò, 1 đĩa Cơm tấm sườn nướng, và 1 bát Chè chuối. Hãy tra cứu calo và đánh giá dinh dưỡng giúp tôi."
         st.session_state.preset = preset_query
 
-# Input form
-st.markdown("### 💬 Ask the AI")
-user_input = st.text_area(
-    "Enter your nutritional query:",
-    value=st.session_state.get("preset", ""),
-    placeholder="Nhập thông tin cân nặng, chiều cao, mục tiêu hoặc ghi nhật ký ăn uống của bạn ở đây...",
-    key="query_input"
+# Input choice
+st.markdown("### 💬 Input Information")
+input_type = st.radio(
+    "Chọn phương thức nhập thông tin:",
+    ["Form Nhập Thông Tin Cá Nhân (Structured Form)", "Nhập Câu Hỏi Tự Do (Free-form Query)"],
+    index=0
 )
+
+user_input = ""
+
+if input_type == "Form Nhập Thông Tin Cá Nhân (Structured Form)":
+    with st.container():
+        st.markdown('<div style="background-color: #f0f2f6; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">', unsafe_allow_html=True)
+        form_col1, form_col2, form_col3 = st.columns(3)
+        
+        with form_col1:
+            form_user_id = st.text_input("Mã người dùng hoặc Tên (User ID/Name)", value="user_1")
+            form_age = st.number_input("Tuổi (Age)", min_value=1, max_value=120, value=24, step=1)
+            form_gender = st.selectbox("Giới tính (Gender)", ["Nam", "Nữ"], index=0)
+            
+        with form_col2:
+            form_height = st.number_input("Chiều cao (Height in cm)", min_value=50.0, max_value=250.0, value=175.0, step=0.5)
+            form_weight = st.number_input("Cân nặng (Weight in kg)", min_value=10.0, max_value=300.0, value=68.0, step=0.5)
+            
+        with form_col3:
+            form_activity = st.selectbox(
+                "Mức độ hoạt động (Activity Level)", 
+                [
+                    "sedentary (Ít vận động)", 
+                    "light (Vận động nhẹ)", 
+                    "moderate (Vận động vừa)", 
+                    "active (Vận động nhiều)", 
+                    "very_active (Vận động cực nhiều)"
+                ], 
+                index=2
+            )
+            form_goal = st.selectbox(
+                "Mục tiêu dinh dưỡng (Goal)", 
+                [
+                    "build_muscle (Tăng cơ)", 
+                    "lose_weight (Giảm cân)", 
+                    "gain_weight (Tăng cân)", 
+                    "maintain (Duy trì cân nặng)"
+                ], 
+                index=0
+            )
+            
+        form_exclude = st.text_input("Dị ứng / Thực phẩm cần tránh (Ví dụ: bún riêu cua, đậu phộng)", value="")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Compile structured prompt
+        act_val = form_activity.split(" ")[0]
+        goal_val = form_goal.split(" ")[0]
+        exclude_part = f", tôi bị dị ứng hoặc muốn tránh: {form_exclude}" if form_exclude.strip() else ""
+        
+        user_input = (
+            f"Tôi là {form_user_id}. Tuổi: {form_age}, Giới tính: {form_gender}, "
+            f"Chiều cao: {form_height}cm, Cân nặng: {form_weight}kg. "
+            f"Mức độ hoạt động: {act_val}, Mục tiêu: {goal_val}{exclude_part}. "
+            f"Hãy tính BMI, BMR, TDEE, lượng macro và lập thực đơn ăn uống trong ngày cho tôi."
+        )
+        
+        st.info(f"**Generated Query:** {user_input}")
+
+else:
+    user_input = st.text_area(
+        "Enter your nutritional query:",
+        value=st.session_state.get("preset", ""),
+        placeholder="Nhập thông tin cân nặng, chiều cao, mục tiêu hoặc ghi nhật ký ăn uống của bạn ở đây...",
+        key="query_input"
+    )
 
 run_clicked = st.button("🔥 Run Analysis", type="primary")
 
