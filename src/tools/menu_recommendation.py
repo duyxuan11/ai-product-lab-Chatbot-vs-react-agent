@@ -6,7 +6,42 @@ import random
 import google.generativeai as genai
 from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
-from tools.db_utils import load_users, load_meals
+
+# Fix pathing issues for db_utils if run from different CWD
+import tools.db_utils
+if "src" in getattr(tools.db_utils, "BASE_DIR", ""):
+    tools.db_utils.BASE_DIR = os.path.dirname(tools.db_utils.BASE_DIR)
+    tools.db_utils.MEALS_FILE = os.path.join(tools.db_utils.BASE_DIR, "mock-data", "MealMockData.Json")
+    tools.db_utils.USERS_FILE = os.path.join(tools.db_utils.BASE_DIR, "mock-data", "MockUser.json")
+    if hasattr(tools.db_utils, "CHAT_HISTORY_FILE"):
+        tools.db_utils.CHAT_HISTORY_FILE = os.path.join(tools.db_utils.BASE_DIR, "mock-data", "ChatHistory.json")
+
+# Monkeypatch load_meals to dynamically return recommended composite dishes
+original_load_meals = tools.db_utils.load_meals
+
+def patched_load_meals() -> list:
+    meals = original_load_meals()
+    try:
+        users_file = tools.db_utils.USERS_FILE
+        if os.path.exists(users_file):
+            with open(users_file, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    users = json.loads(content)
+                    for u in users:
+                        rec = u.get("recommended_menu")
+                        if rec and "menu" in rec:
+                            for meal_type, dish_data in rec["menu"].items():
+                                if dish_data and "name" in dish_data:
+                                    if not any(m["name"].lower() == dish_data["name"].lower() for m in meals):
+                                        meals.append(dish_data)
+    except Exception as e:
+        print(f"Error in patched_load_meals: {e}")
+    return meals
+
+tools.db_utils.load_meals = patched_load_meals
+load_meals = patched_load_meals
+from tools.db_utils import load_users
 
 try:
     sys.stdout.reconfigure(encoding='utf-8')
@@ -88,6 +123,23 @@ def recommend_daily_menu(user_id: str, preferred_dishes: Optional[List[str]] = N
         if not all_snacks: all_snacks = meals
         if not all_mains: all_mains = meals
 
+        # Classify main dishes into sub-courses (Protein, Soup, Veggie)
+        all_soups = []
+        all_veggies = []
+        all_proteins = []
+        for m in all_mains:
+            name_lower = m["name"].lower()
+            if any(kw in name_lower for kw in ["canh", "súp", "lẩu"]):
+                all_soups.append(m)
+            elif any(kw in name_lower for kw in ["rau", "xào", "nộm", "gỏi", "đậu", "luộc"]):
+                all_veggies.append(m)
+            else:
+                all_proteins.append(m)
+
+        if not all_soups: all_soups = meals
+        if not all_veggies: all_veggies = meals
+        if not all_proteins: all_proteins = meals
+
         # Find preferred dishes to force them into candidate sets
         forced_breakfasts = []
         forced_mains = []
@@ -105,29 +157,59 @@ def recommend_daily_menu(user_id: str, preferred_dishes: Optional[List[str]] = N
                     else:
                         forced_mains.append(m)
 
-        # Sort and retrieved candidates
+        forced_soups = []
+        forced_veggies = []
+        forced_proteins = []
+        for m in forced_mains:
+            name_lower = m["name"].lower()
+            if any(kw in name_lower for kw in ["canh", "súp", "lẩu"]):
+                forced_soups.append(m)
+            elif any(kw in name_lower for kw in ["rau", "xào", "nộm", "gỏi", "đậu", "luộc"]):
+                forced_veggies.append(m)
+            else:
+                forced_proteins.append(m)
+
+        # Retrieve candidates for Breakfast and Snack (top 8 closest to target calorie allocation)
         retrieved_breakfasts = sorted(all_breakfasts, key=lambda x: abs(x["calories_kcal"] - bf_target_cal))
-        retrieved_lunches = sorted(all_mains, key=lambda x: abs(x["calories_kcal"] - lh_target_cal))
-        retrieved_dinners = sorted(all_mains, key=lambda x: abs(x["calories_kcal"] - dn_target_cal))
         retrieved_snacks = sorted(all_snacks, key=lambda x: abs(x["calories_kcal"] - sn_target_cal))
 
-        # Force prepend preferred dishes to candidate lists
-        def merge_forced(candidates, forced, limit=8):
+        # Helper to merge forced and retrieved candidates
+        def merge_forced(candidates, forced, limit):
             forced_ids = {f["id"] for f in forced}
             filtered_candidates = [c for c in candidates if c["id"] not in forced_ids]
             merged = forced + filtered_candidates
             return merged[:limit]
 
-        retrieved_breakfasts = merge_forced(retrieved_breakfasts, forced_breakfasts)
-        retrieved_lunches = merge_forced(retrieved_lunches, forced_mains)
-        retrieved_dinners = merge_forced(retrieved_dinners, forced_mains)
-        retrieved_snacks = merge_forced(retrieved_snacks, forced_snacks)
+        retrieved_breakfasts = merge_forced(retrieved_breakfasts, forced_breakfasts, limit=8)
+        retrieved_snacks = merge_forced(retrieved_snacks, forced_snacks, limit=8)
 
-        # Combine retrieved candidates for context and fallback
+        # For Lunch: retrieve diverse courses
+        lh_proteins = sorted(all_proteins, key=lambda x: abs(x["calories_kcal"] - lh_target_cal * 0.6))
+        lh_soups = sorted(all_soups, key=lambda x: abs(x["calories_kcal"] - lh_target_cal * 0.25))
+        lh_veggies = sorted(all_veggies, key=lambda x: abs(x["calories_kcal"] - lh_target_cal * 0.15))
+
+        retrieved_lh_proteins = merge_forced(lh_proteins, forced_proteins, limit=4)
+        retrieved_lh_soups = merge_forced(lh_soups, forced_soups, limit=3)
+        retrieved_lh_veggies = merge_forced(lh_veggies, forced_veggies, limit=3)
+
+        # For Dinner: retrieve diverse courses
+        dn_proteins = sorted(all_proteins, key=lambda x: abs(x["calories_kcal"] - dn_target_cal * 0.6))
+        dn_soups = sorted(all_soups, key=lambda x: abs(x["calories_kcal"] - dn_target_cal * 0.25))
+        dn_veggies = sorted(all_veggies, key=lambda x: abs(x["calories_kcal"] - dn_target_cal * 0.15))
+
+        retrieved_dn_proteins = merge_forced(dn_proteins, forced_proteins, limit=4)
+        retrieved_dn_soups = merge_forced(dn_soups, forced_soups, limit=3)
+        retrieved_dn_veggies = merge_forced(dn_veggies, forced_veggies, limit=3)
+
+        # Combine retrieved candidates for context
         retrieved_context = {
             "Breakfast_Candidates": retrieved_breakfasts,
-            "Lunch_Candidates": retrieved_lunches,
-            "Dinner_Candidates": retrieved_dinners,
+            "Lunch_Candidates_Protein": retrieved_lh_proteins,
+            "Lunch_Candidates_Soup": retrieved_lh_soups,
+            "Lunch_Candidates_Veggie": retrieved_lh_veggies,
+            "Dinner_Candidates_Protein": retrieved_dn_proteins,
+            "Dinner_Candidates_Soup": retrieved_dn_soups,
+            "Dinner_Candidates_Veggie": retrieved_dn_veggies,
             "Snack_Candidates": retrieved_snacks
         }
 
@@ -141,7 +223,8 @@ def recommend_daily_menu(user_id: str, preferred_dishes: Optional[List[str]] = N
                 
                 # Format retrieved candidates for prompt
                 prompt = f"""
-Bạn là một Chuyên gia Dinh dưỡng AI. Nhiệm vụ của bạn là lập một thực đơn trong ngày gồm đúng 4 món ăn (Breakfast, Lunch, Dinner, Snack) chọn từ danh sách món ăn ứng viên được TRUY XUẤT từ RAG database dưới đây.
+Bạn là một Chuyên gia Dinh dưỡng AI. Nhiệm vụ của bạn là lập một thực đơn dinh dưỡng trong ngày gồm đúng 4 bữa ăn (Breakfast, Lunch, Dinner, Snack).
+Với mỗi bữa ăn, bạn có thể chọn một hoặc nhiều món ăn phối hợp cùng nhau từ danh sách món ăn ứng viên được TRUY XUẤT từ RAG database dưới đây để tạo thành một bữa ăn đa dạng và đầy đủ dinh dưỡng.
 
 YÊU CẦU CỦA NGƯỜI DÙNG:
 - Tên: {user["name"]}
@@ -163,18 +246,31 @@ DANH SÁCH MÓN ĂN ỨNG VIÊN ĐƯỢC TRUY XUẤT (RAG CONTEXT):
 {json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_breakfasts], ensure_ascii=False, indent=2)}
 
 - Ứng viên Bữa trưa (Lunch Candidates):
-{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_lunches], ensure_ascii=False, indent=2)}
+  + Món mặn/đạm (Protein):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_lh_proteins], ensure_ascii=False, indent=2)}
+  + Món canh (Soup):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_lh_soups], ensure_ascii=False, indent=2)}
+  + Món rau/kèm (Veggie/Side):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_lh_veggies], ensure_ascii=False, indent=2)}
 
 - Ứng viên Bữa tối (Dinner Candidates):
-{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_dinners], ensure_ascii=False, indent=2)}
+  + Món mặn/đạm (Protein):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_dn_proteins], ensure_ascii=False, indent=2)}
+  + Món canh (Soup):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_dn_soups], ensure_ascii=False, indent=2)}
+  + Món rau/kèm (Veggie/Side):
+{json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_dn_veggies], ensure_ascii=False, indent=2)}
 
 - Ứng viên Bữa phụ (Snack Candidates):
 {json.dumps([{k: m[k] for k in ["name", "calories_kcal", "protein_g", "carbohydrates_g", "fat_g"]} for m in retrieved_snacks], ensure_ascii=False, indent=2)}
 
 QUY TẮC LỰA CHỌN:
-1. Hãy chọn CHÍNH XÁC MỘT MÓN cho mỗi bữa (Breakfast, Lunch, Dinner, Snack) từ danh sách ứng viên tương ứng.
+1. Mỗi bữa ăn (Breakfast, Lunch, Dinner, Snack) có thể chứa danh sách gồm một hoặc nhiều món ăn từ các ứng viên tương ứng.
+   - Bữa sáng: chọn 1-2 món.
+   - Bữa trưa và Bữa tối: nên kết hợp 1 Món mặn/đạm + 1 Món canh + 1 Món rau/kèm từ các nhóm tương ứng để tạo thành mâm cơm hoàn chỉnh và cân đối dinh dưỡng.
+   - Bữa phụ: chọn 1 món.
 2. Tránh chọn trùng lặp món ăn cho bữa trưa và bữa tối.
-3. ĐẢM BẢO RẰNG: Tổng các chỉ số dinh dưỡng (Calories, Protein, Carbs, Fat) của 4 món được chọn phải thỏa mãn sai số LỆCH KHÔNG QUÁ 15% so với chỉ tiêu mục tiêu người dùng đã nêu ở trên.
+3. ĐẢM BẢO RẰNG: Tổng các chỉ số dinh dưỡng (Calories, Protein, Carbs, Fat) của toàn bộ thực đơn trong ngày (của cả 4 bữa cộng lại) phải thỏa mãn sai số LỆCH KHÔNG QUÁ 15% so với chỉ tiêu mục tiêu người dùng đã nêu ở trên.
 """
                 if preferred_dishes:
                     prompt += "4. ƯU TIÊN TUYỆT ĐỐI: Hãy chọn các món ăn có tên hoặc chứa nguyên liệu nằm trong danh sách Món ăn muốn ƯU TIÊN ở trên (nếu chúng có trong danh sách ứng viên).\n"
@@ -184,10 +280,10 @@ QUY TẮC LỰA CHỌN:
                 prompt += """
 HÃY TRẢ VỀ DUY NHẤT CHUỖI JSON THEO ĐỊNH DẠNG SAU:
 {
-  "Breakfast": "tên món đã chọn",
-  "Lunch": "tên món đã chọn",
-  "Dinner": "tên món đã chọn",
-  "Snack": "tên món đã chọn"
+  "Breakfast": ["tên món 1", "tên món 2", ...],
+  "Lunch": ["tên món 1", "tên món 2", ...],
+  "Dinner": ["tên món 1", "tên món 2", ...],
+  "Snack": ["tên món 1"]
 }
 
 Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích và không bọc khối code markdown.
@@ -216,19 +312,68 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
                 suggested_menu = {}
                 # Map names back to full meal records
                 for m_type in ["Breakfast", "Lunch", "Dinner", "Snack"]:
-                    m_name = selected_names.get(m_type, "").strip()
-                    # Look up inside the specific candidates first
-                    candidates = retrieved_context[f"{m_type}_Candidates"]
-                    db_meal = next((m for m in candidates if m["name"].lower() == m_name.lower()), None)
+                    m_names = selected_names.get(m_type, [])
+                    if isinstance(m_names, str):
+                        m_names = [m_names]
                     
-                    if not db_meal:
-                        # Fallback search inside full database
-                        db_meal = next((m for m in meals if m["name"].lower() == m_name.lower()), None)
+                    dishes_in_meal = []
+                    for m_name in m_names:
+                        m_name = m_name.strip()
+                        if not m_name:
+                            continue
                         
-                    if db_meal:
-                        suggested_menu[m_type] = db_meal
-                    else:
-                        raise ValueError(f"Không tìm thấy món ăn '{m_name}' được gợi ý từ LLM")
+                        # Find the candidate lists for this meal type
+                        candidates = []
+                        if m_type == "Breakfast":
+                            candidates = retrieved_context["Breakfast_Candidates"]
+                        elif m_type == "Lunch":
+                            candidates = (
+                                retrieved_context["Lunch_Candidates_Protein"] +
+                                retrieved_context["Lunch_Candidates_Soup"] +
+                                retrieved_context["Lunch_Candidates_Veggie"]
+                            )
+                        elif m_type == "Dinner":
+                            candidates = (
+                                retrieved_context["Dinner_Candidates_Protein"] +
+                                retrieved_context["Dinner_Candidates_Soup"] +
+                                retrieved_context["Dinner_Candidates_Veggie"]
+                            )
+                        elif m_type == "Snack":
+                            candidates = retrieved_context["Snack_Candidates"]
+                        
+                        db_meal = next((m for m in candidates if m["name"].lower() == m_name.lower()), None)
+                        if not db_meal:
+                            # Fallback search inside full database
+                            db_meal = next((m for m in meals if m["name"].lower() == m_name.lower()), None)
+                        
+                        if db_meal:
+                            dishes_in_meal.append(db_meal)
+                        else:
+                            # Try partial match as fallback
+                            db_meal = next((m for m in meals if m_name.lower() in m["name"].lower()), None)
+                            if db_meal:
+                                dishes_in_meal.append(db_meal)
+                            else:
+                                raise ValueError(f"Không tìm thấy món ăn '{m_name}' được gợi ý từ LLM")
+                    
+                    if not dishes_in_meal:
+                        raise ValueError(f"Bữa ăn '{m_type}' không có món ăn hợp lệ nào.")
+                    
+                    # Combine dishes_in_meal into a single composite dish
+                    combined_name = " + ".join(d["name"] for d in dishes_in_meal)
+                    combined_cal = sum(d["calories_kcal"] for d in dishes_in_meal)
+                    combined_p = sum(d["protein_g"] for d in dishes_in_meal)
+                    combined_c = sum(d["carbohydrates_g"] for d in dishes_in_meal)
+                    combined_f = sum(d["fat_g"] for d in dishes_in_meal)
+                    
+                    suggested_menu[m_type] = {
+                        "id": f"composite_{m_type.lower()}_" + "_".join(str(d["id"]) for d in dishes_in_meal),
+                        "name": combined_name,
+                        "calories_kcal": combined_cal,
+                        "protein_g": combined_p,
+                        "carbohydrates_g": combined_c,
+                        "fat_g": combined_f
+                    }
                 
                 if len(suggested_menu) == 4:
                     llm_success = True
@@ -261,25 +406,55 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
             best_combo = None
             best_score = float('inf')
             
-            # Search combinations using the retrieved candidates list to satisfy targets
+            # Search combinations using the retrieved candidates lists to satisfy targets
             rng = random.Random(hash(user_id))
             
-            # Since candidate lists are small (8 each), we can check combinations
-            # Total possible combinations is 8 * 8 * 8 * 8 = 4096. We can do an exhaustive or randomized search.
-            # Let's check 4000 random combinations from candidate lists
+            # Since candidate lists are small, we can sample combinations
             for _ in range(4000):
-                bf = rng.choice(retrieved_breakfasts)
-                lh = rng.choice(retrieved_lunches)
-                dn = rng.choice(retrieved_dinners)
-                sn = rng.choice(retrieved_snacks)
+                # Breakfast: 1-2 món
+                num_bf = rng.choice([1, 2])
+                bf_list = []
+                for _ in range(num_bf):
+                    item = rng.choice(retrieved_breakfasts)
+                    if item not in bf_list:
+                        bf_list.append(item)
 
-                if lh["id"] == dn["id"] and len(retrieved_lunches) > 1:
+                # Lunch: 1 món mặn + 1 canh + 1 rau (or subset)
+                lh_list = []
+                p_item = rng.choice(retrieved_lh_proteins)
+                lh_list.append(p_item)
+                if rng.choice([True, False]):
+                    lh_list.append(rng.choice(retrieved_lh_soups))
+                if rng.choice([True, False]):
+                    s_item = rng.choice(retrieved_lh_veggies)
+                    if s_item not in lh_list:
+                        lh_list.append(s_item)
+
+                # Dinner: 1 món mặn + 1 canh + 1 rau (or subset)
+                dn_list = []
+                p_item = rng.choice(retrieved_dn_proteins)
+                dn_list.append(p_item)
+                if rng.choice([True, False]):
+                    dn_list.append(rng.choice(retrieved_dn_soups))
+                if rng.choice([True, False]):
+                    s_item = rng.choice(retrieved_dn_veggies)
+                    if s_item not in dn_list:
+                        dn_list.append(s_item)
+
+                # Snack: 1 món
+                sn_list = [rng.choice(retrieved_snacks)]
+
+                # Avoid duplicates between Lunch and Dinner
+                lh_ids = {d["id"] for d in lh_list}
+                dn_ids = {d["id"] for d in dn_list}
+                if lh_ids.intersection(dn_ids) and (len(retrieved_lh_proteins) > 1 or len(retrieved_dn_proteins) > 1):
                     continue
 
-                total_cal = bf["calories_kcal"] + lh["calories_kcal"] + dn["calories_kcal"] + sn["calories_kcal"]
-                total_p = bf["protein_g"] + lh["protein_g"] + dn["protein_g"] + sn["protein_g"]
-                total_c = bf["carbohydrates_g"] + lh["carbohydrates_g"] + dn["carbohydrates_g"] + sn["carbohydrates_g"]
-                total_f = bf["fat_g"] + lh["fat_g"] + dn["fat_g"] + sn["fat_g"]
+                all_chosen_dishes = bf_list + lh_list + dn_list + sn_list
+                total_cal = sum(d["calories_kcal"] for d in all_chosen_dishes)
+                total_p = sum(d["protein_g"] for d in all_chosen_dishes)
+                total_c = sum(d["carbohydrates_g"] for d in all_chosen_dishes)
+                total_f = sum(d["fat_g"] for d in all_chosen_dishes)
 
                 # Strict check
                 cal_ok = (target_calories * 0.85) <= total_cal <= (target_calories * 1.15)
@@ -297,17 +472,17 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
                     # Apply preference bonus to lower the score (making it better)
                     if preferred_dishes:
                         pref_lower = [p.lower().strip() for p in preferred_dishes if p.strip()]
-                        for meal in [bf, lh, dn, sn]:
+                        for meal in all_chosen_dishes:
                             if any(p in meal["name"].lower() for p in pref_lower):
                                 score -= 1000
                     
                     if score < best_score:
                         best_score = score
                         best_combo = {
-                            "Breakfast": bf,
-                            "Lunch": lh,
-                            "Dinner": dn,
-                            "Snack": sn,
+                            "Breakfast": bf_list,
+                            "Lunch": lh_list,
+                            "Dinner": dn_list,
+                            "Snack": sn_list,
                             "totals": {
                                 "calories": total_cal,
                                 "protein_g": total_p,
@@ -317,12 +492,22 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
                         }
 
             if best_combo:
-                suggested_menu = {
-                    "Breakfast": best_combo["Breakfast"],
-                    "Lunch": best_combo["Lunch"],
-                    "Dinner": best_combo["Dinner"],
-                    "Snack": best_combo["Snack"]
-                }
+                suggested_menu = {}
+                for m_type in ["Breakfast", "Lunch", "Dinner", "Snack"]:
+                    dishes_in_meal = best_combo[m_type]
+                    combined_name = " + ".join(d["name"] for d in dishes_in_meal)
+                    combined_cal = sum(d["calories_kcal"] for d in dishes_in_meal)
+                    combined_p = sum(d["protein_g"] for d in dishes_in_meal)
+                    combined_c = sum(d["carbohydrates_g"] for d in dishes_in_meal)
+                    combined_f = sum(d["fat_g"] for d in dishes_in_meal)
+                    suggested_menu[m_type] = {
+                        "id": f"composite_{m_type.lower()}_" + "_".join(str(d["id"]) for d in dishes_in_meal),
+                        "name": combined_name,
+                        "calories_kcal": combined_cal,
+                        "protein_g": combined_p,
+                        "carbohydrates_g": combined_c,
+                        "fat_g": combined_f
+                    }
                 total_cal = best_combo["totals"]["calories"]
                 total_p = best_combo["totals"]["protein_g"]
                 total_c = best_combo["totals"]["carbohydrates_g"]
@@ -330,16 +515,45 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
             else:
                 # Absolute fallback search over all meals in the database to guarantee constraints are met
                 for _ in range(5000):
-                    bf = rng.choice(all_breakfasts)
-                    lh = rng.choice(all_mains)
-                    dn = rng.choice(all_mains)
-                    sn = rng.choice(all_snacks)
-                    if lh["id"] == dn["id"]: continue
+                    num_bf = rng.choice([1, 2])
+                    bf_list = []
+                    for _ in range(num_bf):
+                        item = rng.choice(all_breakfasts)
+                        if item not in bf_list:
+                            bf_list.append(item)
 
-                    tc = bf["calories_kcal"] + lh["calories_kcal"] + dn["calories_kcal"] + sn["calories_kcal"]
-                    tp = bf["protein_g"] + lh["protein_g"] + dn["protein_g"] + sn["protein_g"]
-                    t_carbs = bf["carbohydrates_g"] + lh["carbohydrates_g"] + dn["carbohydrates_g"] + sn["carbohydrates_g"]
-                    tf = bf["fat_g"] + lh["fat_g"] + dn["fat_g"] + sn["fat_g"]
+                    lh_list = []
+                    p_item = rng.choice(all_proteins)
+                    lh_list.append(p_item)
+                    if rng.choice([True, False]):
+                        lh_list.append(rng.choice(all_soups))
+                    if rng.choice([True, False]):
+                        s_item = rng.choice(all_veggies)
+                        if s_item not in lh_list:
+                            lh_list.append(s_item)
+
+                    dn_list = []
+                    p_item = rng.choice(all_proteins)
+                    dn_list.append(p_item)
+                    if rng.choice([True, False]):
+                        dn_list.append(rng.choice(all_soups))
+                    if rng.choice([True, False]):
+                        s_item = rng.choice(all_veggies)
+                        if s_item not in dn_list:
+                            dn_list.append(s_item)
+
+                    sn_list = [rng.choice(all_snacks)]
+
+                    lh_ids = {d["id"] for d in lh_list}
+                    dn_ids = {d["id"] for d in dn_list}
+                    if lh_ids.intersection(dn_ids):
+                        continue
+
+                    all_chosen_dishes = bf_list + lh_list + dn_list + sn_list
+                    tc = sum(d["calories_kcal"] for d in all_chosen_dishes)
+                    tp = sum(d["protein_g"] for d in all_chosen_dishes)
+                    t_carbs = sum(d["carbohydrates_g"] for d in all_chosen_dishes)
+                    tf = sum(d["fat_g"] for d in all_chosen_dishes)
 
                     cal_ok = (target_calories * 0.85) <= tc <= (target_calories * 1.15)
                     p_ok = (target_p * 0.85) <= tp <= (target_p * 1.15)
@@ -350,25 +564,35 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
                         score = abs(tc - target_calories)
                         if preferred_dishes:
                             pref_lower = [p.lower().strip() for p in preferred_dishes if p.strip()]
-                            for meal in [bf, lh, dn, sn]:
+                            for meal in all_chosen_dishes:
                                 if any(p in meal["name"].lower() for p in pref_lower):
                                     score -= 1000
                         if score < best_score:
                             best_score = score
                             best_combo = {
-                                "Breakfast": bf,
-                                "Lunch": lh,
-                                "Dinner": dn,
-                                "Snack": sn,
+                                "Breakfast": bf_list,
+                                "Lunch": lh_list,
+                                "Dinner": dn_list,
+                                "Snack": sn_list,
                                 "totals": {"calories": tc, "protein_g": tp, "carbohydrates_g": t_carbs, "fat_g": tf}
                             }
                 if best_combo:
-                    suggested_menu = {
-                        "Breakfast": best_combo["Breakfast"],
-                        "Lunch": best_combo["Lunch"],
-                        "Dinner": best_combo["Dinner"],
-                        "Snack": best_combo["Snack"]
-                    }
+                    suggested_menu = {}
+                    for m_type in ["Breakfast", "Lunch", "Dinner", "Snack"]:
+                        dishes_in_meal = best_combo[m_type]
+                        combined_name = " + ".join(d["name"] for d in dishes_in_meal)
+                        combined_cal = sum(d["calories_kcal"] for d in dishes_in_meal)
+                        combined_p = sum(d["protein_g"] for d in dishes_in_meal)
+                        combined_c = sum(d["carbohydrates_g"] for d in dishes_in_meal)
+                        combined_f = sum(d["fat_g"] for d in dishes_in_meal)
+                        suggested_menu[m_type] = {
+                            "id": f"composite_{m_type.lower()}_" + "_".join(str(d["id"]) for d in dishes_in_meal),
+                            "name": combined_name,
+                            "calories_kcal": combined_cal,
+                            "protein_g": combined_p,
+                            "carbohydrates_g": combined_c,
+                            "fat_g": combined_f
+                        }
                     total_cal = best_combo["totals"]["calories"]
                     total_p = best_combo["totals"]["protein_g"]
                     total_c = best_combo["totals"]["carbohydrates_g"]
@@ -378,39 +602,74 @@ Lưu ý: Chỉ trả về mã JSON thô, không viết thêm chữ giải thích
                     closest_combo = None
                     closest_score = float('inf')
                     for _ in range(2000):
-                        bf = rng.choice(all_breakfasts)
-                        lh = rng.choice(all_mains)
-                        dn = rng.choice(all_mains)
-                        sn = rng.choice(all_snacks)
-                        if lh["id"] == dn["id"]: continue
-                        tc = bf["calories_kcal"] + lh["calories_kcal"] + dn["calories_kcal"] + sn["calories_kcal"]
-                        tp = bf["protein_g"] + lh["protein_g"] + dn["protein_g"] + sn["protein_g"]
-                        t_carbs = bf["carbohydrates_g"] + lh["carbohydrates_g"] + dn["carbohydrates_g"] + sn["carbohydrates_g"]
-                        tf = bf["fat_g"] + lh["fat_g"] + dn["fat_g"] + sn["fat_g"]
-                        
+                        num_bf = rng.choice([1, 2])
+                        bf_list = []
+                        for _ in range(num_bf):
+                            item = rng.choice(all_breakfasts)
+                            if item not in bf_list:
+                                bf_list.append(item)
+
+                        lh_list = []
+                        p_item = rng.choice(all_proteins)
+                        lh_list.append(p_item)
+                        if rng.choice([True, False]):
+                            lh_list.append(rng.choice(all_soups))
+                        if rng.choice([True, False]):
+                            s_item = rng.choice(all_veggies)
+                            if s_item not in lh_list:
+                                lh_list.append(s_item)
+
+                        dn_list = []
+                        p_item = rng.choice(all_proteins)
+                        dn_list.append(p_item)
+                        if rng.choice([True, False]):
+                            dn_list.append(rng.choice(all_soups))
+                        if rng.choice([True, False]):
+                            s_item = rng.choice(all_veggies)
+                            if s_item not in dn_list:
+                                dn_list.append(s_item)
+
+                        sn_list = [rng.choice(all_snacks)]
+
+                        all_chosen_dishes = bf_list + lh_list + dn_list + sn_list
+                        tc = sum(d["calories_kcal"] for d in all_chosen_dishes)
+                        tp = sum(d["protein_g"] for d in all_chosen_dishes)
+                        t_carbs = sum(d["carbohydrates_g"] for d in all_chosen_dishes)
+                        tf = sum(d["fat_g"] for d in all_chosen_dishes)
+
                         score = abs(tc - target_calories)
                         if preferred_dishes:
                             pref_lower = [p.lower().strip() for p in preferred_dishes if p.strip()]
-                            for meal in [bf, lh, dn, sn]:
+                            for meal in all_chosen_dishes:
                                 if any(p in meal["name"].lower() for p in pref_lower):
                                     score -= 1000
                         
                         if score < closest_score:
                             closest_score = score
                             closest_combo = {
-                                "Breakfast": bf,
-                                "Lunch": lh,
-                                "Dinner": dn,
-                                "Snack": sn,
+                                "Breakfast": bf_list,
+                                "Lunch": lh_list,
+                                "Dinner": dn_list,
+                                "Snack": sn_list,
                                 "totals": {"calories": tc, "protein_g": tp, "carbohydrates_g": t_carbs, "fat_g": tf}
                             }
                     if closest_combo:
-                        suggested_menu = {
-                            "Breakfast": closest_combo["Breakfast"],
-                            "Lunch": closest_combo["Lunch"],
-                            "Dinner": closest_combo["Dinner"],
-                            "Snack": closest_combo["Snack"]
-                        }
+                        suggested_menu = {}
+                        for m_type in ["Breakfast", "Lunch", "Dinner", "Snack"]:
+                            dishes_in_meal = closest_combo[m_type]
+                            combined_name = " + ".join(d["name"] for d in dishes_in_meal)
+                            combined_cal = sum(d["calories_kcal"] for d in dishes_in_meal)
+                            combined_p = sum(d["protein_g"] for d in dishes_in_meal)
+                            combined_c = sum(d["carbohydrates_g"] for d in dishes_in_meal)
+                            combined_f = sum(d["fat_g"] for d in dishes_in_meal)
+                            suggested_menu[m_type] = {
+                                "id": f"composite_{m_type.lower()}_" + "_".join(str(d["id"]) for d in dishes_in_meal),
+                                "name": combined_name,
+                                "calories_kcal": combined_cal,
+                                "protein_g": combined_p,
+                                "carbohydrates_g": combined_c,
+                                "fat_g": combined_f
+                            }
                         total_cal = closest_combo["totals"]["calories"]
                         total_p = closest_combo["totals"]["protein_g"]
                         total_c = closest_combo["totals"]["carbohydrates_g"]

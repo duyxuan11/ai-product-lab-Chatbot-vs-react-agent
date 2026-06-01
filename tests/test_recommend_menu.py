@@ -3,7 +3,7 @@ import sys
 from dotenv import load_dotenv
 
 # Add src and tools to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 from tools.menu_recommendation import recommend_daily_menu
 

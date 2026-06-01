@@ -478,5 +478,125 @@
         "protein_g": 14,
         "carbohydrates_g": 35,
         "fat_g": 8
+    },
+    {
+        "id": 61,
+        "name": "Cơm trắng (1 chén)",
+        "calories_kcal": 200,
+        "protein_g": 4,
+        "carbohydrates_g": 45,
+        "fat_g": 0
+    },
+    {
+        "id": 62,
+        "name": "Cơm gạo lứt (1 chén)",
+        "calories_kcal": 220,
+        "protein_g": 5,
+        "carbohydrates_g": 46,
+        "fat_g": 2
+    },
+    {
+        "id": 63,
+        "name": "Trứng rán thịt bằm",
+        "calories_kcal": 250,
+        "protein_g": 15,
+        "carbohydrates_g": 2,
+        "fat_g": 20
+    },
+    {
+        "id": 64,
+        "name": "Đậu hũ dồi thịt sốt cà chua",
+        "calories_kcal": 240,
+        "protein_g": 16,
+        "carbohydrates_g": 8,
+        "fat_g": 15
+    },
+    {
+        "id": 65,
+        "name": "Thịt ba chỉ luộc",
+        "calories_kcal": 350,
+        "protein_g": 18,
+        "carbohydrates_g": 0,
+        "fat_g": 30
+    },
+    {
+        "id": 66,
+        "name": "Canh bí đỏ nấu thịt bằm",
+        "calories_kcal": 130,
+        "protein_g": 6,
+        "carbohydrates_g": 15,
+        "fat_g": 5
+    },
+    {
+        "id": 67,
+        "name": "Canh mồng tơi nấu mướp",
+        "calories_kcal": 45,
+        "protein_g": 2,
+        "carbohydrates_g": 7,
+        "fat_g": 1
+    },
+    {
+        "id": 68,
+        "name": "Rau cải ngọt luộc",
+        "calories_kcal": 35,
+        "protein_g": 2,
+        "carbohydrates_g": 6,
+        "fat_g": 0
+    },
+    {
+        "id": 69,
+        "name": "Thịt ba chỉ rang cháy cạnh",
+        "calories_kcal": 380,
+        "protein_g": 18,
+        "carbohydrates_g": 4,
+        "fat_g": 33
+    },
+    {
+        "id": 70,
+        "name": "Tôm rang thịt ba chỉ",
+        "calories_kcal": 310,
+        "protein_g": 20,
+        "carbohydrates_g": 5,
+        "fat_g": 22
+    },
+    {
+        "id": 71,
+        "name": "Canh cà chua trứng",
+        "calories_kcal": 80,
+        "protein_g": 5,
+        "carbohydrates_g": 6,
+        "fat_g": 4
+    },
+    {
+        "id": 72,
+        "name": "Dưa cải muối chua",
+        "calories_kcal": 20,
+        "protein_g": 1,
+        "carbohydrates_g": 3,
+        "fat_g": 0
+    },
+    {
+        "id": 73,
+        "name": "Rau muống luộc",
+        "calories_kcal": 40,
+        "protein_g": 2,
+        "carbohydrates_g": 7,
+        "fat_g": 0
+    },
+    {
+        "id": 74,
+        "name": "Thịt bò xào thiên lý",
+        "calories_kcal": 220,
+        "protein_g": 20,
+        "carbohydrates_g": 8,
+        "fat_g": 12
+    },
+    {
+        "id": 75,
+        "name": "Canh hẹ đậu hũ thịt bằm",
+        "calories_kcal": 110,
+        "protein_g": 8,
+        "carbohydrates_g": 5,
+        "fat_g": 6
     }
 ]
