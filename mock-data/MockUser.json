@@ -1,0 +1,79 @@
+[
+    {
+        "id": "user_1",
+        "name": "Nguyễn Văn A",
+        "age": 24,
+        "gender": "Nam",
+        "weight_kg": 68.0,
+        "height_cm": 175.0,
+        "activity_level": "moderate",
+        "goal": "build_muscle",
+        "target_calories": 2700,
+        "target_protein_g": 150,
+        "target_carbs_g": 320,
+        "target_fat_g": 90,
+        "logged_meals": [
+            {
+                "meal_type": "Breakfast",
+                "dish_name": "Phở bò",
+                "portion_size": 1.0,
+                "calories_kcal": 450,
+                "protein_g": 25,
+                "carbohydrates_g": 60,
+                "fat_g": 12,
+                "timestamp": "2026-06-01T07:30:00"
+            },
+            {
+                "meal_type": "Lunch",
+                "dish_name": "Cơm tấm sườn nướng",
+                "portion_size": 1.0,
+                "calories_kcal": 600,
+                "protein_g": 30,
+                "carbohydrates_g": 70,
+                "fat_g": 22,
+                "timestamp": "2026-06-01T12:00:00"
+            }
+        ]
+    },
+    {
+        "id": "user_2",
+        "name": "Trần Thị B",
+        "age": 28,
+        "gender": "Nữ",
+        "weight_kg": 60.0,
+        "height_cm": 158.0,
+        "activity_level": "sedentary",
+        "goal": "lose_weight",
+        "target_calories": 1300,
+        "target_protein_g": 85,
+        "target_carbs_g": 140,
+        "target_fat_g": 45,
+        "logged_meals": [
+            {
+                "meal_type": "Breakfast",
+                "dish_name": "Gỏi cuốn (2 cuốn)",
+                "portion_size": 1.0,
+                "calories_kcal": 150,
+                "protein_g": 8,
+                "carbohydrates_g": 25,
+                "fat_g": 3,
+                "timestamp": "2026-06-01T08:00:00"
+            }
+        ]
+    },
+    {
+        "id": "user_3",
+        "name": "Lê Hoàng C",
+        "age": 22,
+        "gender": "Nam",
+        "weight_kg": 52.0,
+        "height_cm": 170.0,
+        "activity_level": "light",
+        "goal": "gain_weight",
+        "target_calories": 2100,
+        "target_protein_g": 100,
+        "target_carbs_g": 290,
+        "target_fat_g": 60,
+        "logged_meals": []
+    }
+]
