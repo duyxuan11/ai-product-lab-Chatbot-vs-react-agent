@@ -1,7 +1,6 @@
 import time
 import os
 from typing import Dict, Any, Optional, Generator
-from llama_cpp import Llama
 from src.core.llm_provider import LLMProvider
 
 class LocalProvider(LLMProvider):
@@ -17,6 +16,13 @@ class LocalProvider(LLMProvider):
             n_ctx: Context window size.
             n_threads: Number of CPU threads to use. Defaults to all available.
         """
+        try:
+            from llama_cpp import Llama
+        except ImportError:
+            raise ImportError(
+                "llama-cpp-python is not installed. If you wish to use local models, "
+                "please install it using 'pip install llama-cpp-python'."
+            )
         super().__init__(model_name=os.path.basename(model_path))
         
         if not os.path.exists(model_path):
@@ -30,7 +36,7 @@ class LocalProvider(LLMProvider):
             verbose=False
         )
 
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+    def generate(self, prompt: str, system_prompt: Optional[str] = None, stop: Optional[list] = None) -> Dict[str, Any]:
         start_time = time.time()
         
         # Phi-3 / Llama-3 style formatting if not handled by a template
@@ -40,10 +46,17 @@ class LocalProvider(LLMProvider):
         else:
             full_prompt = f"<|user|>\n{prompt}<|end|>\n<|assistant|>"
 
+        stop_sequences = ["<|end|>", "Observation:"]
+        if stop:
+            # Merge lists preserving uniqueness
+            for s in stop:
+                if s not in stop_sequences:
+                    stop_sequences.append(s)
+
         response = self.llm(
             full_prompt,
             max_tokens=1024,
-            stop=["<|end|>", "Observation:"],
+            stop=stop_sequences,
             echo=False
         )
 

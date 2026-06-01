@@ -8,7 +8,7 @@ class OpenAIProvider(LLMProvider):
         super().__init__(model_name, api_key)
         self.client = OpenAI(api_key=self.api_key)
 
-    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+    def generate(self, prompt: str, system_prompt: Optional[str] = None, stop: Optional[list] = None) -> Dict[str, Any]:
         start_time = time.time()
         
         messages = []
@@ -19,6 +19,7 @@ class OpenAIProvider(LLMProvider):
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=messages,
+            stop=stop
         )
 
         end_time = time.time()
